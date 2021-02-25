@@ -1,0 +1,243 @@
+====================LINUX==========================
+===================================================
+OS:Operating system is an interface between user and the computer hardware.
+~The hardware of computer can not understand human languge whereas humans can not understand these binary languges in o and 1 s,in such case we need an interface which can translate human language to hardawre and vice-versa for effective communication.
+~Types of OS:-
+ 1.single user single tasking os:-one user and one task at a time. Ex: MS-DOS
+ 2.single user multi tasking os:-one user with multi task. Ex:Windows98
+ 3.multi user multi tasking os:-multi user with multi tasking Ex:UNIX,linux
+~unix-bell labs-ken thompson-1969
+
+Architecture of Unix:-
+The architecture of unix can be divided into three levels of functionality.
+-The lowest level is the kernel, which schedules tasks,manages resources, and controls security.
+-The next level is the shell,which acts as user interface,interpreting user commands and starting applications.
+-The highest level is utilities,which provides utility functions,in other words it is user level,as user is the one who aperates those utilities.
+
+File system hierarchy:-
+-------------------------------
+- Linux uses single rooted, inverted tree like file system hierarchy
+
+/:-  It is parent directory for all other directories .It is called as ROOT directory
+     => C:\ of windows
+/root:- It is the home directory for root user(super user)
+           =>/root is similar to c:\documents & settings\administrator
+/home:- It is home directory for other users
+             =>/home is similar to c:\documents & settings\username
+/boot:- It contains bootable files for linux
+/etc:- It contains all configuration files like /etc/passwd-user info, /etc/group-groups info
+          => /etc is similar to c:\windows\system32\drivers\
+/usr:- By default softwares are installed in /usr directory
+         =>/usr is similar to C:\program files
+/opt:- It is optional directory for /usr. It contains third party softwares.
+         =>/opt is similar to c:\Program files
+/bin:- It contains commands used by all users(Binary files)
+/sbin:- It contains commands used by only super user(root)(super user's binary files)
+/dev:- It conatins device files, like /dev/had-for hard drives, /dev/cd rom- for cd drives
+          =>/dev similar to device manager of windows
+/proc:- It contain process files, the contents are not permanent,it is called virtual directory
+/mnt:- It is default mount point for any partition.It is empty by default
+/media:- It contains all of removable media like CD-ROM,pen drive
+/lib:- It contains library files which are used by OS
+        => /lib is similar to .dll files of windows
+
+
+Basic Commands:-
+-----------------------
+(f1 = filename)
+
+#vi f1
+  click i for insert mode
+  add data
+  Esc+:wq!( to save a file)
+#vim f2
+  click i for insert mode
+  add data
+  Esc+:wq!( to save a file)
+#nano f3
+  add data
+  ctrl+O,Enter,Ctrl+X
+#touch f4 f5 f6   =>To create multiple files at a time
+# cat > f1 => To create & add data to a file & ctrl+d (to save the file)
+#cat f1  => To open a file
+#cat >> f1 => To add data to already existing file
+
+#mkdir folder1 =>To create a directory
+#mkdir -p folder2/{linux/{ubuntu/{ubuntu14, ubuntu16},centos,fedora,redhat,amazon-linux},windows/{windows-1,windows-2}}
+#tree folder2
+
+ls command:-
+
+#ls => to list files & directories
+#ls -a=> To list files & directories along with hidden files
+#ll => To list files & dir with full details
+#ls -ll => To list all files & dir with full details
+#ls -la=> To list all files & dir with hidden also with full deatils
+
+cp & mv commands:-
+
+#cp f1 folder1 =>To copy a file to a dir
+#cp -rvfp folder1 folder2 => To copy dir from one location to other
+#mv f2 folder2  =>To move a file to dir
+#mv folder1 folder2 => To move a dir to other
+#mv f1 f10 =>To rename a file from f1 to f10
+
+rm command:-
+
+#rm f1 => To remove a file
+#rmdir =>To remove an empty data
+#rm -rf folder1=>To remove a folder with data 
+#rm -rf * => To remove everything in current path
+
+
+
+Changing File Permissions & Ownership:-
+--------------------------------------------------------
+4-r= read only
+2-w=write/edit/delete/append
+1-x=execute/run a command
+
+#chmod u=rwx,g=rw,o=r filename
+            or
+#chmod 641 filename   => To modify file permissions to 641
+
+#chown -R ubuntu:ubuntu filename/folder => To change ownership of file/folder to ubuntu user
+
+Filter commnads:-
+------------------------
+# grep string filename =>To search a string in a file
+#grep -i welcome f1 => To avoid case sensitive
+#find / -name filename => To search a file in entire linux machine based on filename
+#find / -inum 5934 => To search a file in entire linux machine based on inum
+#find / -user user1 => 
+#find / -group group1 =>
+#less /etc/passwd => To open a large file
+#more /etc/passwd => To open a large file
+#head f1 =>To list top 10 lines of f1
+#tail f1 => To list last 10 lines of f1
+#head -n f1 => To list first n no of lines
+#tail -n f1 => To list last n no of lines
+#sort f1 => To sort o/p in numeric or alphabet order
+#sort -h f1 => To sort o/p according to no.s
+#sort -u f1 =>To remove duplicate entries & display o/p in ordered format
+
+
+Regular Expressions, Pipelines & I/O redirections:-
+--------------------------------------------------------------------
+# cat f1 | grep -i welcome => To perform grep operation on the o/p of first command
+# sed 's/Tech/technologies/g' f1 => To replace first string with second & display o/p
+#sed 's/tech/techologies/g' f1 >> f2 => To redirect o/p of command to f2 file
+# cat f1 f2 > f3 => To copy multiple files o/p to f3 at a time
+
+Find & Kill the process with id & name:-
+-----------------------------------------------------
+#ps -ef => To list all processes
+#kill -9 <pid> => To kill a particular process
+#ps =>to list processes in current shell
+#ps -A 
+      OR =>diplay every active process on a linux system in generic format
+#ps -e
+
+#ps au 
+     OR =>display all processes in BSD format
+#ps axu
+
+#ps -ef  
+     or
+ #ps -eF  =>to perform a full-format listing
+
+
+
+
+packages installation using RPM & YUM & APT:-
+-------------------------------------------------------------
+#yum install java
+#apt-get install java
+#rpm
+#service <service-name> start  => To start a service
+#service <service-name> stop => To stop a service
+#service <service-name> status => To know status of a service 
+#service <service-name> restart => To restart a service
+
+
+File system & Logical Volume
+---------------------------------------
+#lsblk =>To view your available disk devices
+#sudo file -s /dev/xvdf =>To check fie system exists or not( if we got /dev/xvdf: data as o/p file system not there)
+#sudo mkfs -t xfs /dev/xvdf => To craete a file system
+#sudo yum install xfsprogs(execute this if u face any issues in above step)
+#sudo mkdir /data => To create a directory
+#sudo mount /dev/xvdf /data =>To mount device to /data folder
+#sudo cp /etc/fstab /etc/fstab.orig =>To take backup of fstab file
+#sudo blkid =>To find the UUID of the device
+#sudo vim /etc/fstab
+  UUID=aebf131c-6957-451e-8d34-ec978d9581ae  /data  xfs  defaults,nofail  0  2
+#sudo umount /data
+#sudo mount -a
+# sudo mv /etc/fstab.orig /etc/fstab ( if you get any errors in above steps execute this steps to rollback previous changes)
+
+
+User & Group Administration:-
+----------------------------------------
+#useradd user1 =>To create user
+#passwd user1 =>To set a password
+#groupadd group1 =>To create a group
+#groupmod -n group2 group1 => To modify group name
+#cat /etc/passwd => To see the list of users
+#cat /etc/group => To see list of users & groups
+#usermod -G group1 user1 => To add user1 to group1
+
+
+
+Network configuration:-
+--------------------------------
+#ifconfig => To get ip address
+#hostname (or) hostname -i =>To get private ip of machine
+#nslookup dns-name => To get ip address to which this dns pointing
+#dig -x <ip>  (or) dig dns-name => To get ip of dns
+#ping <ip> => To check whether ip is connecting or not
+#netstat -ntlp => To check which ports are opened in linux
+
+TCP-Transmmission control protocol
+UDP-User Datagram Protocol
+
+netstat command:-
+------------------
+->netstat -a =>to list all the listening ports of tcp, udp connections
+->netstat -at => to list tcp ports connections
+->netstat -au => to list udp ports connections
+->netstat -l => to list all listening ports connections 
+->netstat -lt =>to list all active tcp ports
+->netstat -lu =>to list all active udp ports
+->netstat -lx =>to list all active unix listening ports
+ 
+->netstat -s =>to display statistics for tcp, udp, icmp and ip protocols
+->netstat -st =>to display statistics for tcp
+->netstat -su=>to display statistics for udp
+->netstat -tp =>to list service name with their PID no
+
+-> netstat -ac 5 | grep tcp =>refresh screen every five seconds
+-> netstat -r => to display kernel ip routing table
+-> netstat -g => to display IPv4 and IPv6 information
+-> netstat -c => to print netstat information continuously, say every few seconds.
+
+->netstat -ap | grep http =>find out how many lsitening programs running on a port
+
+
+AWS commands:-
+# curl http://169.254.169.254/latest
+# curl http://169.254.169.254/latest/user-data/  => To get what user data passed for that ec2 instance
+# curl http://169.254.169.254/latest/meta-data/instance-id (or)instancetype => To get details about instance of instance-id, instance type
+
+
+To know cpu usage:-
+#Top
+To know RAM/Memory usage: 
+#free -m
+To know cpu & RAM at a time:
+# htop
+To clear some memory: 
+#sync; echo 1 > /proc/sys/vm/drop_caches
+To know disk space:- 
+#df -h
+

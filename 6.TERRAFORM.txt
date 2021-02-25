@@ -1,0 +1,102 @@
+ TERRAFORM:--
+ ~By using aws cloud formation and ARM templates
+  i.we need to update and create everything in a single file.
+ ii.creation is very slow
+ iii.diff tools have to use for aws ,azure,gcp.
+ iv.json is steep learning curve.
+ v.we can not import existing resources in aws and arm templates.
+
+~By using terraform
+i.we can update in multiple and separate files i.e. is easy to edit
+ii.creation is fast.
+~All terraform files stored as .tf
+
+Install terraform on windows:-
+~Download terraform from google & unzip file & create a folder in c directory as terraform and move that unzipped file to terraform folder.
+~Open cmd
+~terraform --> to know terraform installed or not 
+~set environment variables(adv-env var-path-edit)
+~terraform --version -->to know version
+
+Install terraform on linux:-
+Install unzip
+~sudo apt-get install unzip
+
+Confirm the latest version number on the terraform website:
+https://www.terraform.io/downloads.html
+
+Download latest version of the terraform (substituting newer version number if needed)
+wget https://releases.hashicorp.com/terraform/0.12.18/terraform_0.12.18_linux_amd64.zip
+
+Extract the downloaded file archive
+unzip terraform_0.12.18_linux_amd64.zip
+
+Move the executable into a directory searched for executables
+sudo mv terraform /usr/local/bin/
+
+Run it
+terraform --version 
+
+
+~terraform init  -->for initialisation
+~dir -->to show directories
+~terraform plan --var-file test.tfvars -->generate and show an execution file
+
+~terraform plan --var-file test.tfvars -out mytest
+ -->a file is saved as mytest in c dir i.e execution plan
+
+~terrform apply --var-file test.tfvars
+~terraform output -->to show output 
+~terraform  destory --var-file test.tfvars -->to delete all aws resources
+
+~terraform learns the configuration using state file. 
+~check aws account then a vpc and server is created.
+*A state file is saved in c dir when we perform terraform first time.
+   if we perform again any changes then it will compare with state file and execute
+   those changes only instead of creating everything from scratch.
+*after that a backup file is stored everytime we use terraform action.
+*state file is in json readable format.
+~check by changing tags and plan and apply then it will show to add that changes only.
+~check by using keypair name then it shows 1 to add and 1 to destory.
+
+REMOTE BACKEND:-
+~ state file is must so keep it in a safe location but not in github better to keep it in s3.
+~add backend s3 and execute shows error because reinitialisation is required.
+#terraform init -->first it will point to remote backend config but here tf.vars is not there 
+       so it shows again an error because it doesn't know aws credentials to access s3.
+#aws configure --> to provide access key and secret key
+#terraform init
+
+~then in aws s3 we found statefile
+~then change tags and check whether statefile upadte or not by checking time.
+~Add below code end of main.tf file
+
+terraform {
+  backend "s3" {
+    bucket = "terraform-656r6r6r"
+    key    = "terraform/statefile"
+    region = "us-east-1"
+  }
+}
+
+*state file is stored in remote location so multiple users can change at a time so locking is needed.
+
+~apply statefile locking by using dynamodb.
+~Terraform acquires a state lock to protect the state from being written by multiple users at the same time.
+~for that create another IAM user 
+#wget path -->to download something in that path
+#unzip zipfile -->to unzip a zip file
+
+TERRAFORM WORKSPACES:-
+~copy test.tfvars and create prod.tfvars
+#terraform init
+#terraform plan --var-file test.tfvars
+#terrraform apply --var-file test.tfvars
+#terraform plan --var-file prod.tfvars
+#terraform apply --var-file prod.tfvars
+~THIS IS NOT WORKOUT BECAUSE IT DELETE ALL TEST AND CREATE PROD ,THIS OVERCOME BY USING WORKSPACES
+#terraform workspace
+#terraform workspace list -->to list workspaces
+#terraform workspace new PROD -->to create a prod workspace
+#terraform workspace select workspacename -->to select particular workspace
+#

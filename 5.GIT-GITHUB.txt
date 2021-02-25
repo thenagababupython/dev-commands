@@ -1,0 +1,165 @@
+VERTION CONTROL SYSTEM(VCS)/SOURCE CODE MANAGEMENT(SCM):-
+------------------------------------------------------------------------------------------
+
+~These tools are mainly served to store the code with various versions
+~Here we know all the major and minor changes of the code with date and time.
+Ex:-GIT- It is a distibuted VCS.
+    SVN- It is a centralized VCS.   
+    Perforce
+    CVS
+    TFS
+
+REPOSITORY:-
+            GITHUB- GitHub is a hosting service for Git repositories
+            BITBUCKET- Bitbucket is a web-based version control repository hosting service owned by Atlassian, for source code and development projects that use either Mercurial or Git
+            GITLAB- GitLab is a github like service that organizations can use to provide internal management of git repositories
+            VSTS
+
+~Git is a revision control system, a tool to manage your source code history.  
+~GitHub is a hosting service for Git repositories. So they are not the same thing:  
+~Git is the tool, GitHub is the service for projects that use Git
+
+GIT:-SVN is a centalized repository management whereas GIT is a distributed repository management.
+~In svn developers directly interacted within the svn and develop code in svn directly whereas git developers develop code in their local machines and after completion they deposit into git
+~internet is required everytime worked with svn where as network not required in git while developing code ,it is required at thee time of deposit
+~ GIT has three phases.
+  1.workspace:-if developer develops a code it default saved in workspace
+  2.statging/index area:-here log files are created to know all details 
+  3.local repository:-to push files to central repository
+
+linux:
+yum install git -->for fedora
+apt-get install git -->for ubuntu
+
+~create a github account
+~Download git from google
+~select git for windows
+~right click and run as a administartor
+~next..next..finish.
+~create a folder and open it and right click open git bash here
+~then git bash will opens in the specific folder
+~ctrl+ -->to increase font size of command line
+
+#git -->to know git installed or not
+#yum install git -->to install git on linux
+#git status -->it throughs fatal error
+#git init -->for initialisation(means .git directory is created)
+#git clone pathofcentralrepo -->to clone central repo to local machine
+#ls -la -->to show hidden files and directories
+~the files or directories starts with .(dot)are called hidden files and directories
+#git config --global user.name "devops"
+#git config --global user.email "devops@gmail.com" -->to configure username and email
+#git config --list -->to list all configured files includes username and email
+#touch f1 f2-->to create files
+#git status-->to know status of files on git
+#git add f1 -->To add file f1
+#git add f1 f2-->to add files f1 f2
+#git add ./*/-A --> to add all files at a time
+#git status
+#git commit -m "label" -->to commit all files
+#git commit -m "label" filename -->to commit particular file
+#git status
+#git show commitid -->to show files present in the commit
+
+#git log -->To display logs
+#git log -n -->to show recent n logs
+#git log --oneline -->To display logs in single line
+#git log --oneline -2 -->to show last two commits in one line
+#git log --author=devops -->to show all commits for an author
+#git log --until=yyyy-mm-dd -->to display commits stating to untill particular date
+#git log --since=yyyy-mm-dd -->to display commits since date to end date
+
+#git reset --soft commitid -->to take local repository files of git to staging/index back
+#git reset HEAD filename -->to reset file to workspace from statging/index
+#git reset --mixed commitid-->to reset files directly to workspace from local repository
+#git reset commitid --hard -->to delete files along with commit-ids
+
+#git push -->To push code from local repository to github central repository
+#git checkout commitid -->
+#git remote add origin path -->add a remote as origin to central repo path
+#git remote -v -->to check remote connection 
+#git push origin master -->to push local repo content to central repo
+#git remote remove origin -->to remove remote path
+#git clean -n -->dry run to clean files in staging/index
+#git clean -f -->to delete files in staging/index
+
+#git branch -->to list all branches&show currently in which branch u r
+#git branch branchname-->to create a new branch
+#git checkout branchname -->to goto particular branch
+#git merge branchname -->to merge files from child branch
+#git checkout -b branchname --> to create a new branch and goto that branch directly
+#git push origin -d master1 -->to delete total master1 branch in central repo
+#git branch -D master1 -->to delete total master1 branch in local machine(we cannot delete current branch,so innorder to delete a branch come out of that branch)
+
+TO DELETE FILES:-
+~suppose f1 file is there.
+~rm f1 -->removes file in local machine
+~ls   -->f1 not displayed
+~git status  -->f1 will be in untraked files as deleted
+~git add .
+~git commit -m "label message"
+~check central repo f1 will displays
+~git push 
+~check central repo f1 will not displays
+
+#git pull path -->to update the changes from central repo to local machine
+
+CONFLICTS:-
+~when the developer commits to change a same file in two diff branches with diff data then merging conflicts will occur.
+#git merge --abort -->to get out of merge|MERGING branch.
+
+#git config --global alias.lo "log --oneline -2" -->to set alias name for a command
+~then git lo will gives same o/p as log --oneline -2
+#git config --global --unset alias.lo -->to unset a alias name for a command
+
+#git commit -am "label" -->to commit modified files directly without add command
+#vi .gitignore -->to create a ignore file (which is not displayed when we enter git status)
+~generally log files will change regularlly .so these files are keeped with the above file.
+
+STASH MEMORY:-It is a temparory memory to store files from staging/index.
+# Git stash list -->to list stash memories
+# git stash save "label" -->to create a stash memory
+# git stash pop -->to reset  files from stash to staging /index and stash deleted
+# git stash apply -->to reset stash to staging/index along without stash deletion
+#git stash show -p stash@{n} -->to list files in that stash
+#git stash drop -->to delete stash without adding to staging/index.
+
+TAGS:-
+#git tag -->to list tags
+#git tag tagname -->to create a tag  upto the current time
+#git show tagname -->to display details about tag
+#git push origin tagname -->to push code to central repo using tag name
+#git push --tags ==>to push all tags to central repo
+#git tag -d tagname -->to delete tag in local machine
+#git push origin -d tagname -->to delete tag in central repo
+#git tag tagname commitid -->to create a tag upto that particular commitid
+
+
+
+~git pull= git fetch + git merge
+#git branch -->to list local branches
+#git branch -r -->to list remote branches
+#git branch -a -->to list all branches
+#git commit --amend -m "label" -->to change last commit message
+#git branch -m oldname newname --> to change branch name
+
+git fork: 
+~To maintain a copy of the repository
+~It is used to propose any changes to others repo code without changing the actual code.
+~After performing changes to the others repo we neeed to send a pull request to them to view our changes ,if he satisfies the changes he will affect those changes to his original code.
+~Creating a fork is producing a personal copy of someone else's project. Forks act as a sort of bridge between the original repository and your personal copy. You can submit Pull Requests to help make other people's projects better by offering your changes up to the original project. Forking is at the core of social coding at GitHub
+
+git rebase vs Merge:-
+~ With the rebase command, you can take all the changes that were committed on one branch and replay them on a different branch but not add extra commit-id
+# git rebase master1
+# git merge master1
+If the feature branch you are getting changes from is shared with other developers, rebasing is not recommended, because the rebasing process will create inconsistent repositories. For individuals, rebasing makes a lot of sense.
+If you want to see the history completely same as it happened, you should use merge. Merge preserves history whereas rebase rewrites it.
+
+
+
+aws code commit:-
+vi ~/.ssh/config
+Host git-codecommit.*.amazonaws.com
+  User APKAT7E7UBU3G7V6BMHO
+  IdentityFile ~/.ssh/id_rsa

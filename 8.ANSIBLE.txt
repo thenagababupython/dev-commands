@@ -1,0 +1,608 @@
+ANSIBLE:-
+-----------
+=>Ansible is an open-source software provisioning, configuration management, and application-deployment tool.
+=>Ansible is called as agentless/push based configuration management tool
+
+Modules:-
+=>Modules are mostly standalone and can be written in a standard scripting language (such as Python, Perl, Ruby, Bash, etc.). 
+=>One of the guiding properties of modules is idempotency, which means that even if an operation is repeated multiple times (e.g., upon recovery from an outage), it will always place the system into the same state.
+
+Inventory configuration:-
+=>The Inventory is a description of the nodes that can be accessed by Ansible.
+=>By default, the Inventory is described by a configuration file, in YAML format, whose default location is in /etc/ansible/hosts.
+=>The configuration file lists either the IP address or hostname of each node that is accessible by Ansible. In addition, nodes can be assigned to groups.
+
+=>An example inventory:
+
+192.168.6.1
+
+[webservers]
+foo.example.com
+bar.example.com
+
+=>This configuration file specifies three nodes: the first node is specified by an IP address and the latter two nodes are specified by hostnames. Additionally, the latter two nodes are grouped under the webservers group.
+
+Ansible Tower:-
+=>Ansible Tower is a REST API, web service, and web-based console designed to make Ansible more usable for IT teams with members of different technical proficiencies and skill sets.
+=>It is a hub for automation tasks.
+
+Part-1:
+~launch an ubuntu-18.04 instance
+$ sudo su -
+$ apt-get update
+$ apt-get install software-properties-common
+$ apt-add-repository --yes --update ppa:ansible/ansible
+$ apt-get install ansible
+$ ansible --version -->which shows version along with config file path
+
+~we can change the default path of config file by following
+$ mkdir /test
+$ cp /etc/ansible/ansible.cfg /test
+$ cd /test
+$ ansible --version -->which gives the changed path of config file
+
+$ nano hosts -->create a file with name hosts [allhosts]10.12.52.13
+$ ansible -i hosts -m ping all -->it shows unreachable
+$ cd
+$ nano /etc/ssh/sshd_config -->set passswordauthentication yes
+$ service sshd restart
+$ passwd ubuntu -->set a passwd for ubuntu
+$ exit
+$ cd /test
+
+~ From /ubuntu/test
+$ ssh-keygen
+$ ssh-copy-id ubuntu@ip
+$ ansible -i hosts -m ping all
+
+~Launch a node-1/client-1 ubuntu server
+$ sudo su -
+$ nano /etc/ssh/sshd_config
+$ service sshd restart
+$ passwd ubuntu
+$ apt-get update
+$ apt-get install python-pip
+
+~Go to master server
+$ ssh-copy-id ubuntu@nodeip(excute this as ubuntu user from /home/ubuntu)
+~Add node-ip in hosts file
+$ ansible -i hosts -m ping all
+
+$ ansible -i hosts -a ifconfig all -->lists all hosts details along with ip addresses
+$ ansible -i hosts -a uptime 10.5.1.101 -->to know uptime of a host
+$ ansible -i hosts -a uname all
+$ ansible -i hosts -a "uname -a" all 
+$ ansible -i hosts -a "cat /etc/passwd" all-->to list conf files of all hosts
+$ ansible -i hosts -a "cat /etc/passwd" 10.12.23.34-->to list conf files of a particular ip
+
+
+Part-2:--PLAYBOOKS:-
+ =>Playbooks are YAML files that express configurations, deployment, and orchestration in Ansible,and allow Ansible to perform operations on managed nodes.
+ =>Each Playbook maps a group of hosts to a set of roles. 
+ =>Each role is represented by calls to Ansible tasks.
+
+$ ansible -i hosts -m setup all -->to list entire information about the servers
+$ ansible -i hosts all -m user -a "name=testuser password=india@123" -b -->to create a user in all servers
+$ ansible -i hosts all -m user -a "name=testuser state=absent" -b -->to delete a user in all servers
+$ cat /etc/passwd
+$ openssl passwd -1(one) India@123 -->to create a encryption to a password 
+$ sudo nano firstplaybook.yml
+
+---
+- hosts: all
+  become: true
+  become_method: sudo
+  become_user: root
+  gather_facts: true
+
+  tasks:
+    - name: create user1
+      user:
+        name: user1
+        password: '$1$kyvlQm59$RLqa/f7cJ.WXB1Ee9cqWw0'
+        state: present
+        shell: /bin/bash
+        system: no
+        createhome: yes
+        home: /home/user1
+
+    - name: create user2
+      user:
+        name: user2
+        password: '$1$vEMVuurB$36UgOo3bxe9/lcu5YGYP..'
+        state: present
+        shell: /bin/bash
+        system: no
+        createhome: yes
+        home: /home/user2
+
+    - name: create user3
+      user:
+        name: user3
+        password: '$1$xWQNjTT8$F/vUoYEhP0dBZOROlzQvv/'
+        state: present
+        shell: /bin/bash
+        system: no
+        createhome: yes
+        home: /home/user3 
+                     
+~check the yml syntax by using yml.lint
+$ ansible-playbook firstplaybook.yml --syntax-check  -->to check syntax of ansible
+$ ansible-playbook -i hosts firstplaybook.yml -b
+$ cat /etc/passwd -->three users are created
+
+~In the above playbook we created 3 users ,but if we needed 100 users and need to install 
+  multiple packages then the code will duplicate again and again.this can be overcome by
+  using with items concept 
+
+---
+- hosts: all
+  become: true
+  become_method: sudo
+  become_user: root
+  gather_facts: true
+
+  tasks:
+   - name: install package nginx
+     apt:
+       name: nginx
+       state: present
+   - name: start nginx service
+     service:
+       name: nginx
+       state: started 
+
+
+Part-3:VARIABLES/with_items:-
+
+~For creating multiple users with less code we use with items.
+$ sudo nano secondplaybook.yml
+---
+- hosts: all
+  become: true
+  become_method: sudo
+  become_user: root
+  gather_facts: true
+
+  tasks:
+    - name: create users
+      user:
+        name: "{{ item }}"
+        password: 'bfh54yg@svd$fsf#'
+        state: present
+        shell: /bin/bash
+        system: no
+        createhome: yes
+        home: /home/"{{ item }}"            
+      with_items:
+           - user4
+           - user5
+           - user6
+
+$ ansible-playbook -i hosts secondplaybook.yml -b
+$ cat /etc/passwd
+$ ansible -i hosts app -a "cat /etc/passwd" -->to list conf files directly of app server from master
+
+Part-4:-ROLES:-
+~ google--ansible galaxy and search for nginx
+$ sudo ansible-galaxy install geerlingguy.nginx
+~by default it saves to /home/ubuntu/.ansible/roles
+$ cd /home/ubuntu/.ansible/roles
+$ cd geerlingguy.nginx/
+$ cd tasks/
+$ cat main.yml-->which describes which task has to execute
+$ cd /test
+$ cd roles/
+$ sudo ansible-galaxy init role-1 -->to create a role
+$ cd role-1/
+$ cd tasks/
+$ sudo nano nginx.yml
+---
+  - name: install package nginx
+     apt:
+       name: nginx
+       state: present
+  - name: start service nginx, if not started
+    service:
+     name: nginx
+     state: started
+
+~check syntax by using ymllint
+$ sudo nano user.yml
+
+---
+  - name: create users
+    user:
+      name: "{{ item }}"
+      password: 'bfh54yg@svd$fsf#'
+      state: present
+      shell: /bin/bash
+      system: no
+      createhome: yes
+      home: /home/"{{ item }}"
+            
+    with_items:
+       - user7
+       - user8
+$ sudo nano main.yml
+
+ - import_tasks: user.yml
+ - import_tasks: nginx.yml
+           
+
+
+$ sudo nano thirdplaybook.yml
+
+---
+  - hosts: all
+    become: true
+    become_method: sudo
+    become_user: root
+    gather_facts: true
+    roles:
+      - role1
+
+$ ansible-playbook -i hosts thirdplaybook.yml -b
+~check in both machines users creation & nginx service status
+
+Part-4:ANSIBLE-TAGS-LOOPS-CONDITIONS:--
+
+tags:-If u want to run or create a specific part of code in a playbook tags are helpful
+$ cat firstplaybook.yml
+$ ansible-playbook -i hosts firstplaybook.yml
+$ ansible-playbook firstplaybook.yml --syntax-check
+$ ansible-playbook firstplaybook.yml --list-tasks
+$ ansible-playbook -i hosts firstplaybook.yml --check -->dry run
+$ ansible-playbook -i hosts firstplaybook.yml --syntax-check
+
+sudo nano firstplaybook.yml
+---
+  - hosts: all
+    become: true
+    become_method: sudo
+    become_user: root
+    gather_facts: true
+
+    tasks:
+                    
+     - name: create user1
+       user:
+         name: user1
+         password: '$1$kyvlQm59$RLqa/f7cJ.WXB1Ee9cqWw0'
+         state: present
+         shell: /bin/bash
+         system: no
+         createhome: yes
+         home: /home/user1
+       tags:                 
+        - user1
+            
+     - name: create user2
+       user:
+         name: user2
+         password: '$1$vEMVuurB$36UgOo3bxe9/lcu5YGYP..'
+         state: present
+         shell: /bin/bash
+         system: no
+         createhome: yes
+         home: /home/user2
+       tags:                 
+         - user2                                               
+                               
+     - name: create user3
+       user:
+         name: user3
+         password: '$1$xWQNjTT8$F/vUoYEhP0dBZOROlzQvv/'
+         state: present
+         shell: /bin/bash
+         system: no
+         createhome: yes
+         home: /home/user3
+       tags:                 
+        - user3  
+                  
+$ ansible-playbook -i hosts firstplaybook.yml --tags user3 --check
+$ ansible-playbook -i hosts firstplaybook.yml --tags user2,user3 --check
+                         
+sudo nano firstplaybook.yml
+---
+  - hosts: all
+    become: true
+    become_method: sudo
+    become_user: root
+    gather_facts: true
+
+    tasks:
+
+      - name: create user1
+        user:
+           name: user1
+           password: '$1$kyvlQm59$RLqa/f7cJ.WXB1Ee9cqWw0'
+           state: present
+           shell: /bin/bash
+           system: no
+           createhome: yes
+           home: /home/user1
+        tags:                 
+          - user1
+          - create        
+      - name: create user2
+        user:
+           name: user2
+           password: '$1$vEMVuurB$36UgOo3bxe9/lcu5YGYP..'
+           state: present
+           shell: /bin/bash
+           system: no
+           createhome: yes
+           home: /home/user2
+        tags:                 
+          - user2                                                
+          - create 
+                    
+      - name: create user3
+        user:
+           name: user3
+           password: '$1$xWQNjTT8$F/vUoYEhP0dBZOROlzQvv/'
+           state: present
+           shell: /bin/bash
+           system: no
+           createhome: yes
+           home: /home/user3
+        tags:                 
+          - user3
+          - create 
+            
+      - name: Delete all users
+        user:
+           name: "{{item}}"
+           password: '$1$xWQNjTT8$F/vUoYEhP0dBZOROlzQvv/'
+           state: absent
+           shell: /bin/bash
+           system: no
+           createhome: yes
+           home: /home/{{item}}
+        tags:
+          - delete
+        with_items:
+          - user1
+          - user2
+          - user3
+                   
+$ ansible-playbook -i hosts firstplaybook.yml --tags delete --check
+$ ansible-playbook -i hosts firstplaybook.yml --tags delete
+                                  
+Conditions:-
+----------------
+When Statement
+=>Sometimes you will want to skip a particular step on a particular host.
+=>This could be something as simple as not installing a certain package if the operating system is a particular version, or it could be something like performing some cleanup steps if a filesystem is getting full.
+
+tasks:
+  - name: "shut down Debian flavored systems"
+    command: /sbin/shutdown -t now
+    when: ansible_facts['os_family'] == "Debian"
+
+
+Loops:-
+--------
+=>Repeated tasks can be written as standard loops over a simple list of strings. You can define the list directly in the task:
+
+- name: add several users
+  user:
+    name: "{{ item }}"
+    state: present
+    groups: "wheel"
+  loop:
+     - testuser1
+     - testuser2
+
+tasks:
+    - command: echo {{ item }}
+      loop: [ 0, 2, 4, 6, 8, 10 ]
+      when: item > 5
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+PRASAD-ANSIBLE:-
+~Ansible server--
+ -yum update
+ -yum install epel-release
+ -yum install git python python-pip python-devel openssl ansible
+ -cd /etc/ansible
+ -vi ansible.cfg
+     ----
+ -vi hosts
+     ----
+ [group1]
+  ip
+  ip
+ [group2]
+  ip
+
+visudo
+ ----
+ansible  ALL=(ALL)  NOPASSWD:ALL
+
+ssh-keygen
+ssh-copy-id ansible@ip
+ssh ip
+
+-history 10 -->lists last 10 commands used
+-ansible group -m ping
+-ansible batch24 -a "ls -l/opt"
+-ansible batch24 -a "touch /opt/file1" -s
+-ansible batch24 -a "cat /etc/passwd"
+-ansible batch24 -m copy -a "src=/path/of dest=/path" -s
+-ansible batch24 -m yum -s -a "name=git state=present" -s
+-ansible batch24 -m yum -s -a "name=git state=absent" -s
+-ansible batch24 -m user -s -a "name=batch24"
+-ansible batch24 -m user -s -a "name=batch24 state=absent"
+-ansible batch24 -m yum -s -a "name=httpd state=present"
+-ansible batch24 -m service -s -a "name=httpd state=started"
+
+
+playbook.yaml
+---
+- hosts: batch24
+  become: yes
+  tasks:
+  - name: installing httpd
+    yum: name=httpd
+  - name: starting httpd services
+    service: name=httpd state=started
+  - name: copying files
+    copy: src=/opt/f1.s1 dest=/opt
+
+playbook1.yaml
+---
+- hosts: batch24
+  become: yes
+  tasks:
+  - name: installing httpd
+    yum: state=latest name={{ item }}
+    with_item:
+      - git
+      - wget
+      - httpd
+      - vim
+  - name: starting httpd services
+    service: name=httpd state=started
+  - name: copying files
+    copy: src=/opt/f1.s1 dest=/opt
+
+
+playbook.yml
+---
+  - hosts: localhost
+    become: true
+    become_method: sudo
+    become_user: root
+    gather_facts: true
+
+    tasks:
+
+      - name: install docker
+        apt:
+          name: docker.io
+          state: latest
+
+      - name: install docker-compose
+        apt:
+          name: docker-compose
+          state: latest
+      - name: Install nvm
+        shell: >
+          curl https://raw.githubusercontent.com/creationix/nvm/v0.7.0/install.$
+          creates=/home/{{ ansible_user_id }}/.nvm/nvm.sh
+      - name: Install node and set version
+        shell: >
+          /bin/bash -c "source ~/.nvm/nvm.sh && nvm install 0.10 && nvm alias d$
+          creates=/home/{{ ansible_user_id }}/.nvm/alias
+
+
+- name: "nvm"
+  shell: >
+    curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.sh | bash
+  args:
+    executable: /bin/bash
+    chdir: "{{ ansible_env.HOME }}"
+    creates: "{{ ansible_env.HOME }}/.nvm/nvm.sh"
+
+- name: "node"
+  shell: >
+    . {{ ansible_env.HOME }}/.nvm/nvm.sh && nvm install {{ item }}
+  args:
+    executable: /bin/bash
+    chdir: "{{ ansible_env.HOME }}"
+    creates: "{{ ansible_env.HOME }}/.nvm/versions/{{ item }}"
+  loop:
+    - node
