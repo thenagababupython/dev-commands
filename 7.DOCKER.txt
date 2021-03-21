@@ -1,0 +1,475 @@
+
+DOCKER:-
+
+~ Docker is a company name
+~ Container orchestration tools:Kubernetes,Docker Swarm ,Aws ECS/EKS, Mesos....
+
+Q) difference b/w vm & container?
+A)
+vm
+1. the application start up time will be more
+2. you can run only one application effectively
+3. hypervisor(vmware, virtual box, xen......)
+
+container
+1. the app startup time will be less & binary & library files of os(image)
+2. multiple applications
+3. conatiner engine(docker, mesos, kubermetes.......)
+
+~ Launch an ubuntu machine and connect to it and follow below steps.
+$ sudo apt-get remove docker docker-engine docker.io -->to uninstall old versions of docker
+$ sudo apt-get update -->for update
+$ sudo apt-get install \
+    apt-transport-https \
+    ca-certificates \
+    curl \
+    software-properties-common
+$ curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+$ sudo apt-key fingerprint 0EBFCD88
+$ sudo add-apt-repository \
+   "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+   $(lsb_release -cs) \
+   stable"
+$ sudo apt-get update
+
+$ sudo apt-get install docker-ce ==>to install docker
+
+$ Docker --version --> to know version
+$ Docker ps  (OR)  # docker container ls -all --> To list containers
+$ Docker container ls -aq -->to list only cids of all containers
+
+~ Create a dockerhub account and create a repository and search for nginx
+$ Docker pull nginx
+$ Docker images (or) Docker image ls-->to list docker images then nginx will displays.
+$ Ifconfig -->will shows docker0
+$ Docker run -it -p 80:80 nginx:latest /bin/bash -->To run a container
+~ Inside a docker container most of common commands are not work like config
+$ Apt-get install net-tools --> to work ifconfig command
+
+$ Docker attach containerid
+          (OR)            ===>To go to inside a container
+$ Docker exec -it cid bash  
+ 
+$ Service nginx status      -->to know status of nginx
+$ Service nginx start       -->to start nginx
+~ Hit the public ip in browser then nginx page opens
+~ exit --> to escape from inside container (container is stopped)
+~ Ctrl+pq                   -->to escape from inside conatiner(ctrl+pq ==>container is not stopped)
+$ Docker stop containerid  -->to stop containers
+$ Docker rm containerid     -->to remove containers
+$ Docker rmi imageid        -->to remove images
+$ Docker ps                 -->shows only running containers
+$ Docker ps -a              -->stopped containers also appears
+$ Docker stop $(docker ps -aq) -->to stop all containsers at a time
+$ Docker rm $(docker ps -aq)-->delete all containers and data
+$ Docker ps -a              -->nothing displayed here.
+
+9/10/18:-https://s3.amazonaws.com/devopsstate/dockerinstall.sh
+
+$ Docker search ubuntu
+$ Docker pull ubuntu:latest
+$ Docker images
+$ Docker run --rm -it --name=ubuntuout --hostname=ubuntuin -p 8080:80 ubuntu:latest bash
+$ Docker exec -it Cid bash -->to go in side container
+
+$ Apt-get install net-tools -y -->to work  ifconfig cmd in ubuntu
+$ Apt-get install iputils-ping -->to work ping
+$ Apt-get install nano tree -y -->to work nano,tree cmds in ubuntu
+
+$ Docker commit cid repositoryname/tag -->to create new image
+$ Docker images
+$ Docker login -->enter username and passwd
+$ Docker push reponame/tag -->to push an image to dockerhub(docker push 690690/devops-1)(docker push 690690/devops-1:v1)
+~ Check in dockerhub that push
+
+$ Apt-get install apache2 -y -->to install apache2
+$ Service apache2 status
+$ Service apache2 start 
+
+$ Docker inspect cid -->to know all detailed information about container
+$ Alias cls=clear     -->cls gives same o/p as clear
+$ Docker ps           -->displays list of containers with some details
+$ Docker ps -aq       -->displays only list of cid's
+$ Docker stop $(docker ps -aq) -->which stops all containers at a time
+$ Docker rm $(docker ps -aq) -->which deletes all containers at a time
+$ Ifconfig 
+$ Docker network ls -->
+
+@google==>docker network create
+$ Docker network create --driver=bridge --subnet=192.168.0.0/16 network192
+$ Docker network ls -->to list networks
+$ Docker network inspect networkname -->details about network
+$ Docker run --rm -it --name=ubuntu192 --network=network192 -p 8080:80 690690/nginx:2 bash
+
+
+volumes:-
+$ Docker volume create vol1 -->to create a volume
+$ Docker volume ls -->to list volumes
+$ Docker volume inspect vol1 -->to know all details about vol1
+$ Docker run --rm -it -v vol1:/tmp/data repo/tag:1 bash
+$ Cd /tmp/data/
+$ df -h -->
+$ nano file1
+$ cp file1 file2
+$ cp file1 file3
+$ Docker run --rm -dit -v vol1:/tmp/data repo/tag:1 bash
+$ ls
+$ Docker exec -it cid ls /tmp/data -->attach to container and displays files
+$ ll path -->to list files in a specified path
+$ Docker volume rm vol1 -->to remove volume
+~ If the containers delete also the volume data will remain in the path.
+$ Docker rmi $(docker images) -f -->to remove all images at a time
+
+10/10/18:-
+DOCKER FILES:-This is used to automate the creation of images and push these images to dockerhub
+
+FROM ubuntu:latest
+MAINTAINER PHANI (PHANI@domain.com)
+RUN apt-get update
+RUN apt-get install iputils-ping -y
+RUN apt-get install net-tools -y
+#CMD ping www.google.com
+#CMD ["sh","-c","ping www.google.com"]
+#ENTRYPOINT ["sh", "-c" ,"ping www.google.com"]
+#ENTRYPOINT ping www.google.com
+ENTRYPOINT ["/bin/ping"]
+CMD ["www.google.com"]
+~ We can overwrite a cmd in docker file but we can not over write entrypoint in docker file.
+
+~create a dockerfile
+$ mkdir dfiles
+$ cd dfiles
+$ nano Dockerfile
+  
+  FROM ubuntu:latest -->to pull ubuntu latest from dockerhub
+  RUN apt-get update -->to update
+  RUN apt-get install nginx -y  -->to install nginx
+  RUN service nginx start -->to start nginx service
+
+$ docker build -t ubuntu:v1 .(dot) -->to build docker file, which gives an image
+$ docker images
+
+~FROM:-it is used to pull service from dockerhub
+~RUN:-Two forms 1.shell form              Ex:cmd ping www.google.com                  
+                            2.exec form in json  Ex:cmd ["sh","-c","www.google.com"]
+~CMD :-it is used to execute a command directly when we start a container. We can overwrite it.
+~ENTRYPOINT:-It is also similar to cmd but here we can not overwrite it.
+~COPY:for copy 
+~LABEL
+~EXPOSE:which ports u want expose to connect to multiple containers
+          this does not publish port.
+
+~env
+~add
+~copy
+~volume
+~workdir
+
+Diff b/w copy& add:-
+--------------------------
+COPY copies a file/directory from your host to your image.
+
+ADD copies a file/directory from your host to your image, but can also fetch remote URLs, extract TAR files, etc...
+
+Use COPY for simply copying files and/or directories into the build context.
+
+Use ADD for downloading remote resources, extracting TAR files, etc..
+
+
+12/10/18:-
+DOCKER COMPOSE:-
+~It is used to run containers automatically
+
+google -->github.com/docker/compose/releases
+       -->wordpress docker compose
+$ docker-compose
+$ nano docker-compose.yml
+~from google copy and paste wordpress with docker code or voting app with docker containers code
+$ docker-compose up-->to create & start containers
+$ docker-compose down -->to stop & remove containers,networks,images & volumes.
+$ docker-compose ps -->to list all running containers
+$ docker-compose logs -->to list all logs
+monolithic:-all services are attached to each other and running on a set of servers.
+web-app-db
+microservice:-de-couple the services
+
+google-->play with docker -->it is a instance lab of free for 4 hours,here we can create instances
+ctrl+insert -->to copy content from play with docker
+ctrl+shift+insert -->to paste content
+
+13/10/18:-
+DOCKER SWARM:-
+~If we use only one host with docker containers,if any case it fail then the application will not work.
+~By using swarm we can overcome this by maintaining more than one host.
+google-->play with docker-->start 4 instances
+
+$ docker swarm init -->for initializtion
+$ docker swarm init --advertise-addr 192.168.0.13
+$ docker swarm join --token SWMTKN-1-5ty3vly0lec32zi2yaoe1aaozamm939st7ycb3tm2vraymkru6-3i5d7ngy3oqh8wnlaxs13mf8z 192.168.0.33:2377
+
+~Ctrl+Insert=copy
+~Shift+Insert=paste
+~alt+enter=to increase/decrese the terminal size
+
+$ docker swarm join  ---------
+~run same command in other instances also to work those containers as worker nodes
+$ docker node ls -->to list nodes
+$ docker service --help
+$ docker service create --help
+$ docker service ls
+$ docker service rm id
+$ docker service create --name=service1 nginx
+$ docker service create --name=service2 nginx
+$ docker service ps serviceid -->to list nodes on which a service running
+$ docker service update serviceid --replicas=4 -->to run a service on 4 nodes
+$ docker service scale service1=10 service2=5 -->to scale no of containers
+
+$ docker network ls -->to list networks
+$ docker network create --driver string networkname -->to create a network
+$ docker network rm networkid -->to remove a network
+
+google
+~git clone https://github.com/dockersamples/example-voting-app.git
+$ docker stack deploy -c docker-stack.yml voteapp
+$ vim docker-stack.yml -->by editing this we can increase the no of containers
+$ docker stack deploy -c docker-stack.yml voteapp -->to update the above changes
+$ docker node promote nodename --->to promote a node as a manager
+$ docker node demote nodename --> to demote a node from a reachable state
+$ docker node ls -->to list nodes
+$ docker stack ls
+$ docker service rm servicename -->to remove service
+$ docker swarm leave -->to leave a node from swarm
+
+
+
+
+$ nano docker-compose.yml
+wordpress:-
+version: '3.3'
+
+services:
+   db:
+     image: mysql:5.7
+     volumes:
+       - db_data:/var/lib/mysql
+     restart: always
+     environment:
+       MYSQL_ROOT_PASSWORD: somewordpress
+       MYSQL_DATABASE: wordpress
+       MYSQL_USER: wordpress
+       MYSQL_PASSWORD: wordpress
+
+   wordpress:
+     depends_on:
+       - db
+     image: wordpress:latest
+     ports:
+       - "8000:80"
+     restart: always
+     environment:
+       WORDPRESS_DB_HOST: db:3306
+       WORDPRESS_DB_USER: wordpress
+       WORDPRESS_DB_PASSWORD: wordpress
+       WORDPRESS_DB_NAME: wordpress
+volumes:
+    db_data: {}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+15/10/18:-
+AWS ECS:-
+Container Instance - EC2 server where the container runs
+Tasks - Each container can be called as Task.
+Task Definition - Image,CPU,Memory
+Service - similar to docker service which can deploy a complete solution.
+ECR - Is similar to docker hub for repositories.
+~An amazon ECS cluster is a regional grouping of one or more container instances on which you can run task requests.
+~Each account receives a default cluster the first time you use the amazon ECS service.
+~create a cluster.
+~Then an instance is created,connect to the instance
+$ docker info
+$ docker ps -->an ecs-agent is displayed
+~create a task definition
+google -->ecs task definition example nginx
+~copy the json file of nginx task def and create a task def.
+~run a new task,which starts a container
+$ docker ps --> along with ecs agent a container runs
+~Create an ECS service which adds a load balancer to the containers
+~Check the tasks and docker ps
+~Delete service and delete cluster ,which deletes all ECS
+
+
+
+16/10/18:-
+KUBERNETES:-
+
+
+
+19/10/18
+
+
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+name: helloworld-deployment
+spec:
+replicas: 3
+template:
+metadata:
+labels:
+app: helloworld
+spec:
+containers:
+- name:
+image:
+ports:
+- name:
+containerPort: 80
+
+
+
+apiVersion: v1
+kind: Service
+metadata:
+name: helloworld-service
+spec:
+ports:
+
+port: 80
+targetPort: nodejs-port
+protocol: TCP
+selector:
+app: helloworld
+type: LoadBalancer
+
+======================
+assignment:-
+---------------------
+docker compose file 
+httpd:
+    image: httpd
+    ports:
+     - "<server public IP>:800:80"
+couchbase:
+     image: couchbase
+     ports:
+      - "<server public IP>:5984:80"
+
+
+==========================================================
+==========================================================
+
+
+google:-
+==========================================================
+===========================================================
+
+## List Docker CLI commands
+docker
+docker container --help
+
+## Display Docker version and info
+docker --version
+docker version
+docker info
+
+## Execute Docker image
+docker run hello-world
+
+## List Docker images
+docker image ls
+
+## List Docker containers (running, all, all in quiet mode)
+docker container ls
+docker container ls --all
+docker container ls -aq
+
+----------------------------------------------------
+
+docker build -t friendlyhello .  # Create image using this directory's Dockerfile
+docker run -p 4000:80 friendlyhello  # Run "friendlyname" mapping port 4000 to 80
+docker run -d -p 4000:80 friendlyhello         # Same thing, but in detached mode
+docker container ls                                # List all running containers
+docker container ls -a             # List all containers, even those not running
+docker container stop <hash>           # Gracefully stop the specified container
+docker container kill <hash>         # Force shutdown of the specified container
+docker container rm <hash>        # Remove specified container from this machine
+docker container rm $(docker container ls -a -q)         # Remove all containers
+docker image ls -a                             # List all images on this machine
+docker image rm <image id>            # Remove specified image from this machine
+docker image rm $(docker image ls -a -q)   # Remove all images from this machine
+docker login             # Log in this CLI session using your Docker credentials
+docker tag <image> username/repository:tag  # Tag <image> for upload to registry
+docker push username/repository:tag            # Upload tagged image to registry
+docker run username/repository:tag                   # Run image from a registry
+
+----------------------------------------------------------------
