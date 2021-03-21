@@ -1,0 +1,12 @@
+ant, maven ,gradle ,ms ,build
+
+
+maven : build tool and project managment tool
+ant : build tool    
+mvn clean
+mvn install
+mvn package
+mvn integration-test
+mvn deploy
+mvn test
+mvn archtype:generate
