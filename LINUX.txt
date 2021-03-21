@@ -132,6 +132,7 @@ Regular Expressions, Pipelines & I/O redirections:-
 Find & Kill the process with id & name:-
 -----------------------------------------------------
 #ps -ef => To list all processes
+#ps -ef | grep java    ==> display only java related processes
 #kill -9 <pid> => To kill a particular process
 #ps =>to list processes in current shell
 #ps -A 
@@ -151,8 +152,11 @@ Find & Kill the process with id & name:-
 
 packages installation using RPM & YUM & APT:-
 -------------------------------------------------------------
-#yum install java
+#yum install java   =>Redhat linux, amazon linux
 #apt-get install java
+     or                              =>For ubuntu os
+#apt install java
+
 #rpm
 #service <service-name> start  => To start a service
 #service <service-name> stop => To stop a service

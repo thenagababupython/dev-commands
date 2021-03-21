@@ -1,0 +1,224 @@
+devops project
+==============
+
+->create two instances one for jenkins and one for tomcat
+->For jenkins launch a red-hat instance
+->install java and set path
+  # yum install java-1.8*
+  # export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.161-0.b14.el7_4.x86_64/
+  # PATH=$PATH:$JAVA_HOME
+->download jenkins on ec2 instance
+  # sudo yum install wget
+  # sudo wget -0 ........
+
+->download maven on jenkins server.In our case it is /opt/maven
+  Link: https://maven.apache.org/download.cgi
+  wget <maven_download_url>
+-> setup M2_HOME and M2 paths in .bash_profile of user.
+  M2_HOME=/opt/maven/apache-maven-3.5.3
+  M2=$M2_HOME/bin
+
+-> Install git
+  # yum install git -y
+  # mvn -version
+->Login to jenkins console
+->Install maven & git plugin without restart
+  =>manage jenkins =>manage plugins => available=>"maven invoker"
+                                                =>"github"
+->set maven & git path
+   =>manage jenkins => global tool configuration =>maven
+   =>manage jenkins => global tool configuration =>git
+
+->take a sample java project to github repositories.
+->create an item in jenkins server with selecting maven project and build.
+->mention clean install package  under maven option
+
+->Inorder to deploy this war file to tomcat we need to do two things
+     i) install 'deploy to container' plugin.
+     ii) jenkins->credentials->system->global credentials add tomcat credentials.
+           (we will get these from conf->tomcatusers.xml file with role 'manager-script')
+->then we will find 'deploy war/ear to a container' option under post-builds.
+->provide **/*.war  for WAR/EAR files and give credentials and tomcat URL then save and build now.
+-> check https://tomcatip:port/webapp/ whether it is deployed or not.
+
+->now set poll scm with */2 * * * *  cron tab for continuous integration.then whenever a change in code of github then it starts build and deploy that change to tomcat server.
+->check it by editing the code.
+---------------------------------------------------------------
+->In this video we are deploying that war files to tomcat by using ansible instead of jenkins like previous video.
+->we are going to do the following tasks.
+  i)Enable password less authentication b/w ansible and tomcat server
+  ii)Install " publish over ssh" plugin on jenkins server
+  iii)write a playbook to copy jar/war file on to tomcat server.
+  iv)modify jenkins job to copy artifacts and initiate ansible playbook.
+->login to ansible server and then tomcat server execute below commands.
+  # useradd ansadmin  ->to create user
+  # visudo            ->to provide root access
+    ansadmin ALL=(ALL)  NOPASSWD: ALL
+  # passwd ansadmin   -> to set a password
+->similarly do on tomcat server also.
+->from ansible server
+  # ssh-keygen        ->to generate a ssh key
+  # ssh-copy-id tomcat-ip  ->to copy ssh key to tomcat
+  # ssh tomcatip  ->to login to tomcat from ansible without password
+  # exit  ->to exit from tomcat to ansible
+  # vi /etc/ansible/hosts  -->to check tomcat ip is added to the hosts file or not.if not add it
+  # ansible all -m ping  ->to check connection exists b/w ansible and tomcat or not
+->install "publish over ssh" plugin under jenkins
+->write a playbook in ansible for deploy artifacts to tomcat
+  # cd /opt
+  # cd /playbooks
+  # nano copyfile.yml
+    ---
+    - hosts: web-servers
+      become: true
+      tasks:
+        - name: copy war onto tomcat server
+          copy:
+            src: /opt/playbooks/webapp/target/webapp.war
+            dest: /opt/apache-tomcat-8.5.32/webapps
+->go to manage jenkins->configure system->publish over ssh ->SSH servers
+->configure job->post steps->send files or execute commands over SSH
+----------------------------------------------------------------------------
+In this video we are going to deploy war file into a docker container.
+1.Launch an EC2 instance for Docker host
+2.Install docker on EC2 instance and start services.
+  # yum install docker
+  # service docker start
+3.Create a new user for docker management and add him to docker(default)group.
+  # useradd dockeradmin
+  # passwd dockeradmin
+  # usermod -aG docker dockeradmin
+4.Write a docker file under /opt/docker
+  # mkdir /opt/docker
+  # vi Dockerfile
+    # pull base image
+    FROM tomcat:8-jre8
+    # Maintainer
+    MAINTAINER "valaxytech@gmail.com"
+    # copy war file on to container
+    COPY ./webapp.war/usr/local/tomcat/webapps
+5.Login to jenkins console and add docker server to execute commands from jenkins.
+   manage jenkins-->configure system-->publish over SSH-->add docker server and credentials
+6.create jenkins job
+
+A.source code management
+  repository: https://github.com/valaxytech/hello-world.git
+  branches to build: */master
+B.build root POM: pom.xml
+  goals and options: clean install package
+C.send files or execute commands over SSH name: docker_host
+  source files:webapp/target/*.war
+  remove prefix:webapp/target
+  remote directory://opt//docker
+  exec command: docker stop valaxy_demo; docker rm -f valaxy_demo; docker image rm -f valaxy_demo; cd /opt/docker;
+  docker build -t valaxy_demo
+D.send files or execute commands over SSH
+ name: docker_host
+ exec command: docker run -d --name valaxy_demo -p 8090:8080 valaxy_demo
+7.Login to docker host and check images and containers (no images and containers)
+8.Execute jenkins job
+9.check images and containers again on docker host.This time an image and container get creates through jenkins job
+10. Access web application from browseer which is running on container <docker_host_public_IP>:8090
+Note: if it fails add below command in docker instance under docker folder
+  # chown -R dockeradmin:dockeradmin /opt/docker
+------------------------------------------------------------------
+
+PreRequisites:
+1.jenkins sevrer
+2.ansible server
+3.setup ansible client and install docker
+4.docker hub account
+
+Part-1:- In this part we create Docker image on ansible server through jenkins job and pushed it onto DockerHub.
+create an docker image:
+----------------------
+1.Login to jenkins console
+2.create a jenkins job, fill following deatils,
+  >source code management
+    @repository: https://github.com/valaxytech/hello-world.git
+    @branches to build: */master
+  >>build:
+    @Root POM: pom.xml
+    @Goals and options: clean install package
+  >>post steps
+    @send files or execute commands over SSH
+     ~Name: ansible_server
+     ~Source files: webapp/target/*.war
+     ~Remove prefix: webapp/target
+     ~Remote directory: //opt//docker
+    @send files or execute commands over SSH
+     ~Name:ansible_server
+     ~source files:Dockerfile
+     ~Remote directory: //opt//docker
+     ~Exec command:
+        + cd /opt/docker
+        + docker build -t valaxy_demo
+        + docker tag valaxy_demo valaxy/valaxy_demo
+        + docker push valaxy/valaxy_demo
+        + docker rmi valaxy_demo valaxy/valaxy_demo
+3. Login to docker host and check images and containers.(no images and containers)
+4. Login to docker hub and check shouldn't find images with for vcalaxy_demo
+5. Execute jenkins job
+6. check images in docker hub. now u could able to see new images pushed to valaxy/docker_hub
+------------------------------
+part-2:-
+1.write a yml file to create a container( file name: create_docker_container.yml)
+  
+ ---
+ - hosts: web-servers
+   become: true
+   tasks:
+    - name: stop previous version docker
+      shell: docker stop valaxy_demo
+    - name: remove stopped container
+      shell: docker rm -f valaxy_demo
+    - name: remove docker images
+      shell: docker image rm -f valaxy/valaxy_demo
+
+    - name: create docker image
+      shell: docker run -d --name valaxy_demo -p 8090:8080 valaxy/valaxy_demo
+2.add this script to jenkins job
+  >choose "configure" to modify your jenkins job
+    >under post build actions
+      >send files or execute commands over SSH
+        >Exec command
+          cd /opt/playbooks
+          ansible-playbook create_docker_container.yml
+3.execute jenkins job
+4.you could see a new container on your docker host. can able access it from browser on port 8090
+-----------------------------------
+Part-3: Deploy with version control containers
+->So far we used latest docker image to build a container, but what happens if latest version is not working?
+  One easiest solution is, maintain version for each build. This can be achieved by using environment variables.
+  Here we are using 2 variables.
+  >BUILD_ID -the current build id
+  >JOB_NAME -name of the project of this build. this is the name you gave your job when you first set it up.
+ Lets modify jenkins job which was created in part-1 as below.
+ 1. create jenkins job
+   > source code management
+      > repository: https://github.com/valaxytech/hello_world.git
+      > branches to build: */master
+   > Build:
+      > Root POM: pom.xml
+      > Goals and options: clean install package
+   > send files or execute commands over SSH
+      > name: ansible_server
+      > source files: webapp/target/*.war
+      > remove prefix: webapp/target
+      > remote directory: //opt//docker
+   > send files or execute commands over SSH
+      > name: ansible_server
+      > source files: Dockerfile
+      > remote directory: //opt//docker
+      > Exec command:
+         cd /opt/docker 
+         docker build -t $JOB_NAME:v1.$BUILD_ID .
+         docker tag $JOB_NAME:v1.$BUILD_ID
+         valaxy/$JOB_NAME:1v.$BUILD_ID
+         docker tag $JOB_NAME:v1.$BUILD_ID
+         valaxy/$JOB_NAME:latest
+         docker push valaxy/$JOB_NAME:1v.$BUILD_ID
+         docker push valaxy/$$JOB_NAME:latest
+         docker rmi $JOB_NAME:v1.$BUILD_ID
+         valaxy/$JOB_NAME:1v.$BUILD_ID valaxy/$JOB_NAME:latest
+
