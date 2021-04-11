@@ -1,0 +1,229 @@
+  Continuous Integration/Continuous Delivery(CI/CD):-
+
+~Continuous integration (CI) is a DevOps practice in which team members regularly commits their code changes to the version control repository, after which automated builds and tests are run. 
+~Continuous delivery (CD) is a series of practices where code changes are automatically built, tested and deployed to production.
+
+jenkins-free,opensource and lot of plugins
+hudson-like jenkins but licenced version
+bamboo
+teamcity
+circleCI
+TravisCI
+GoCD
+******************************************************************************************
+
+Jenkins Installation on Linux:-
+-----------------------------------------
+~create an ubuntu 16.04 instance and install jdk,jenkins on it
+$ sudo su -
+$ sudo apt-get update
+$ sudo apt-get install default-jre
+$ sudo apt-get install default-jdk
+$ java -version
+$ cd /tmp && wget -q -O - https://pkg.jenkins.io/debian-stable/jenkins.io.key | sudo apt-key add -
+$ echo 'deb https://pkg.jenkins.io/debian-stable binary/' | sudo tee -a /etc/apt/sources.list.d/jenkins.list
+$ sudo apt update
+$ sudo apt install jenkins
+~After installing Jenkins, the commands below can be used to stop, start and enable Jenkins to alwyas start up when the server boots…
+$ service jenkins status/stop/start/restart
+~Next, open your browser and browse to the server hostname or IP address followed by port # 8080
+$ cat /var/lib/jenkins/secrets/initialAdminPassword
+~continue as admin
+~click on manage plugins and then click on available and select the required plugins and click on install without restart.
+***************************************************************************
+About Jobs
+About Views
+About Manage Jenkins
+About Users
+About Nodes
+About Plugins
+About Global Tool Configuration
+About script console/cli/logs
+*************************************************************************
+~create an item with a free style project
+
+echo "Clone the GIT repo"
+echo .
+echo .
+git clone https://github.com/aws-samples/eb-tomcat-snakes.git
+echo .
+echo .
+cd eb-tomcat-snakes
+echo .
+echo .
+echo "Running the script now"
+./build.sh
+echo .
+echo .
+echo "Move Artifact to tmp folder"
+mv ROOT.war /tmp/ROOT.war
+
+~click on apply and then save.
+~click on build now
+~then if build success we found a ROOT.war under tmp folder
+~if we want to edit that project again click on configure and select source code as none
+~under build environment click delete workspace before build starts
+~add below script before execute shell
+rm -rf eb-tomcat-snakes
+rm -rf /tmp/ROOT.war
+***********************************************************
+~To create maven job install maven integration plugin & install maven on jenkins and specify path under manage jenkins -->Global Tool Configuration--> Maven
+~mvn clean compile package
+************************************************************
+Build periodically: * * * * * (Build happen automatically for every one minute)
+Pole SCM:* * * * *(Jenkins will check source code repo periodically if any change is there in code level then build happen)
+Web-hook trigger: Whenver a change happen in  the code automatoically jenkins job will trigger
+(Select build as GitHub hook trigger for GITScm polling)
+(In github go to particular repo-->settings-->webhook-->Payload URL as "http://100.25.171.55:8080/github-webhook/" & Content type as "application/json"  & select "just push the event" check box
+
+************************************************************
+~We are going to automate the jenkins server to deploy aws cloud formation when we push something to the github.
+~use the same ubuntu instance and install awscli on that
+$ apt-get update
+$ apt-get install python-pip
+$ apt-get install awscli
+$ aws --version
+
+~create an IAM user and copy screct key and access key
+$ aws configure -->enter req details to login to aws 
+$ aws s3 ls --> check it working or not in any path
+
+~create a repository in github and add a webhook under settings for the repo
+~http://ec2-18-207-220-61.compute-1.amazonaws.com:8080/github-webhook/
+
+~If we push any thing to the git,then it automatically builds and gives ROOT.war in tmp folder
+~If it doesn't work then install suggested plugins like github integration 
+
+
+~Upload aws-basic-infra json file to s3 for cloud formation and copy s3 link address(https://s3ghvghvhgv.s3.us-east-2.amazonaws.com/AWS_Basic_Infra.json)
+~For the same project use aws cloud stack url
+~And push any change then it build starts and vpc and other resources are created in aws 
+~In the next we can use multiple build steps i.e.,aws cloud formation first and ROOT.war creation under tmp folder.
+
+***************************************************************************************
+
+~In this we see how to integrate jenkins with docker and next pipelines
+~For that we need to install docker compose build step &pipeline plugin in manage plugins.
+
+~[NOTE:-
+ 1.Git checkout(jenkinsfile) 
+ 2.Build and save artifacts.
+ 3.Create docker image using above artifacts using dockerfile
+ 4.push latest image to the repository docker hub
+ 5.docker compose to docker host or swarm / kubernetes service
+ 6.Create pipeline using jenkinsfile
+
+ 1.Canary Deployment:Here new updates are deployed to one by one web servers ,because if any issue comes we can have other web servers with old versions will work properly.
+ 2.Blue/Green Deployment:Here Green means existing web servers.They deploy to new web servers i.e., blue .If any issue with blue deployment the green will work with old version properly.
+ ]
+***************************************************************************************
+pipeline script:-
+
+node ('master'){
+   stage('build'){
+      sh "rm -rf eb-tomcat-snakes"
+      sh "git clone https://github.com/aws-samples/eb-tomcat-snakes.git"
+      sh "cd eb-tomcat-snakes"
+   }
+   stage('test'){
+      echo "this is test stage....!!"
+   }
+   stage('deploy'){
+      echo "this is deployment stage...!!"
+   }
+}
+
+
+Jenkinsfile (Declarative Pipeline)
+pipeline {
+    agent any 
+    stages {
+        stage('Build') { 
+            steps {
+                // 
+            }
+        }
+        stage('Test') { 
+            steps {
+                // 
+            }
+        }
+        stage('Deploy') { 
+            steps {
+                // 
+            }
+        }
+    }
+}
+
+************************************************************************************
+Jenkinsfile (Scripted Pipeline)
+node {  
+    stage('Build') { 
+        // 
+    }
+    stage('Test') { 
+        // 
+    }
+    stage('Deploy') { 
+        // 
+    }
+}
+*************************************************************************************
+$ sudo systemctl stop jenkins.service
+$ sudo systemctl start jenkins.service
+$ sudo systemctl enable jenkins.service
+
+****************************************************************************
+Master-Slave:-
+------------------
+
+~In the big companies maintaining a single jenkins server is not an ideal solution.
+~So we can create multiple slaves under jenkins master and use each slave as dev,test,prod like this.
+~We can use master as windows/linux but better to use linux for slaves(centos,ubuntu free verions)
+
+~First launch an ubuntu instance for jenkins master and install jenkins and connect to jenkins site by using port 8080
+$ su - jenkins  -->after installation of jenkins a user is created as jenkins and now we are jenkins user
+$ ssh-keygen
+$ ls /var/lib/jenkins/.ssh
+
+~create another ubuntu instance for jenkins slave
+$ sudo su -
+$ passwd ubuntu  -->to set ubuntu passwd
+$ nano /etc/ssh/sshd_config  -->set passwd authentication yes
+$ service sshd restart
+
+~setup credentials on jenkins :goto jenkins dashboard -->credentials -->global -->add credentials -->ssh username with private key -->ok
+~Setup slave node by installing java on it.
+ $ apt-get update
+ $ apt-get install oracle-java8-installer
+ $ java -version  -->must be the latest 
+~Add new jenkins user on slave
+ $ useradd -m -s /bin/bash jenkins
+ $ passwd jenkins
+~Copy the ssh key from master to slave for jenkins user
+ $ ssh-copy-id jenkins@slave-ip
+ $ ssh jenkins@slave-ip  -->directly login to the slave with jenkins as user
+~Add new slave nodes-->goto jenkins dashboard-->nodes-->new node-->host-slaveip
+~goto jenkins dashboard-->create project-->labeling:testing -->save and apply
+
+
+class-5:-
+
+AZURE DEVOPS:--
+~Google it as devops.azure.com and create an account with microsoft account credentials,its free of cost.
+~Create an organization,under that we can create projects as private.
+~Repos will work as github for that click on generate git credentials
+~create a folder in any drive and open cmd 
+ $ git init
+ $ git status
+ $ touch f1 f2
+ $ git add .
+ $ git commit -m "firstcommit"
+ $ git remote add origin htts://....
+ $ git push -u origin --all -->it will ask for credentials of azuredevops
+~Then under commits we will see our firstcommit
+
+pipelines:--
+~To create a pipeline -->click on releases-->new pipeline-->select a template/create an empty job-->apply
+~for builds create a build pipeline.
