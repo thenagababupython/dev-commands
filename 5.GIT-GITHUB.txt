@@ -158,7 +158,7 @@ If you want to see the history completely same as it happened, you should use me
 
 
 
-aws code commit:-
+aws code commit:- 
 vi ~/.ssh/config
 Host git-codecommit.*.amazonaws.com
   User APKAT7E7UBU3G7V6BMHO
