@@ -60,6 +60,7 @@ apt-get install git -->for ubuntu
 #git commit -m "label" filename -->to commit particular file
 #git status
 #git show commitid -->to show files present in the commit
+# git push -uf origin main
 
 #git log -->To display logs
 #git log -n -->to show recent n logs
